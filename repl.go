@@ -9,8 +9,9 @@ import (
 
 var commandIndex map[string]cliCommand
 
-func startRepl() {
+func startRepl(cfg *Config) {
 	scanner := bufio.NewScanner(os.Stdin)
+
 	for {
 		fmt.Print("Pokedex > ")
 		err := scanner.Scan()
@@ -18,14 +19,21 @@ func startRepl() {
 			fmt.Println("Done.")
 			return
 		}
-		inp := scanner.Text()
-		words := cleanInput(inp)
+
+		words := cleanInput(scanner.Text())
+		if len(words) == 0 {
+			continue
+		}
 		command := words[0]
 		ctrl, ok := commandIndex[command]
 		if ok {
-			_ = ctrl.callback()
+			err := ctrl.callback(cfg)
+			if err != nil {
+				fmt.Println(err)
+			}
 		} else {
 			fmt.Println("Unknown command")
+			continue
 		}
 	}
 }
@@ -51,11 +59,21 @@ func init() {
 			description: "Exit the Pokedex",
 			callback:    commandExit,
 		},
+		"map": {
+			name:        "map",
+			description: "Displays a list of the next 20 location areas in the Pokemon world",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Display a list of the previous 20 location areas in the Pokemon world",
+			callback:    commandMapb,
+		},
 	}
 }
 
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*Config) error
 }
