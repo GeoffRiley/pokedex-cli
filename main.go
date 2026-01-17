@@ -11,6 +11,7 @@ func main() {
 	cfg := &Config{
 		pokeapiClient: pokeClient,
 		NextURL:       pokeapi.LocationStartURL(),
+		caughtPokemon: make(map[string]pokeapi.Pokemon),
 	}
 	startRepl(cfg)
 }

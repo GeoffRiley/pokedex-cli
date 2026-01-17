@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -71,13 +72,66 @@ func commandExplore(cfg *Config, args ...string) error {
 	}
 
 	fmt.Printf("Exploring %s...\n", locationResp.Location.Name)
-	len := len(locationResp.PokemonEncounters)
-	if len == 0 {
+	locLen := len(locationResp.PokemonEncounters)
+	if locLen == 0 {
 		fmt.Println("No Pokemon found here")
 	}
-	for i := 0; i < len; i++ {
+	for i := 0; i < locLen; i++ {
 		fmt.Println("-", locationResp.PokemonEncounters[i].Pokemon.Name)
 	}
 
+	return nil
+}
+
+func commandCatch(cfg *Config, args ...string) error {
+	if len(args) < 2 {
+		return errors.New("must supply a pokemon name")
+	}
+	pokeName := args[1]
+	pokemon, err := cfg.pokeapiClient.GetPokemon(pokeName)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokeName)
+
+	const threshold = 50
+	randNum := rand.Intn(pokemon.BaseExperience)
+	if randNum > threshold {
+		return fmt.Errorf("Failed to catch %s.\n", pokeName)
+	}
+	cfg.caughtPokemon[pokeName] = pokemon
+	fmt.Printf("Caught %s!\n", pokeName)
+	return nil
+}
+
+func commandListCaught(cfg *Config, args ...string) error {
+	for name, pokemon := range cfg.caughtPokemon {
+		fmt.Printf("%s: %s\n", name, pokemon.Name)
+	}
+	return nil
+}
+
+func commandInspect(cfg *Config, args ...string) error {
+	if len(args) < 2 {
+		return errors.New("must supply a pokemon name")
+	}
+	pokeName := args[1]
+	pokemon, ok := cfg.caughtPokemon[pokeName]
+	if !ok {
+		return fmt.Errorf("%s is not caught", pokeName)
+	}
+	//fmt.Printf("%#v\n", pokemon)
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %v\n", pokemon.Height)
+	fmt.Printf("Weight: %v\n", pokemon.Weight)
+	for _, stat := range pokemon.Stats {
+		fmt.Printf(" - %s: %v\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Print("Types: ")
+	for _, typ := range pokemon.Types {
+		fmt.Printf(" %s", typ.Type.Name)
+	}
+	fmt.Println()
 	return nil
 }

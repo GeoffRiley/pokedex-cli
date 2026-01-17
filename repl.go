@@ -74,6 +74,21 @@ func init() {
 			description: "Explore a given area",
 			callback:    commandExplore,
 		},
+		"catch": {
+			name:        "catch",
+			description: "Catch a pokemon",
+			callback:    commandCatch,
+		},
+		"list": {
+			name:        "list",
+			description: "List caught pokemon",
+			callback:    commandListCaught,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Inspect a pokemon",
+			callback:    commandInspect,
+		},
 		"cfg": {
 			name:        "cfg",
 			description: "Show config",

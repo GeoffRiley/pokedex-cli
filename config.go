@@ -6,6 +6,7 @@ type Config struct {
 	NextURL       *string
 	PreviousURL   *string
 	pokeapiClient pokeapi.Client
+	caughtPokemon map[string]pokeapi.Pokemon
 }
 
 type Result_arr struct {
