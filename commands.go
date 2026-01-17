@@ -6,13 +6,13 @@ import (
 	"os"
 )
 
-func commandExit(cfg *Config) error {
+func commandExit(cfg *Config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
 
-func commandHelp(cfg *Config) error {
+func commandHelp(cfg *Config, args ...string) error {
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
 	fmt.Println()
@@ -22,8 +22,29 @@ func commandHelp(cfg *Config) error {
 	return nil
 }
 
-func commandMap(cfg *Config) error {
-	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.NextURL)
+func commandCfg(cfg *Config, args ...string) error {
+	fmt.Printf("%#v\n", cfg.NextURL)
+	fmt.Printf("%#v\n", cfg.PreviousURL)
+	fmt.Printf("%#v\n", cfg.pokeapiClient.CacheSize())
+	return nil
+}
+
+func commandMap(cfg *Config, args ...string) error {
+	var url *string
+	var position string
+	if args[0] == "map" {
+		url = cfg.NextURL
+		position = "last"
+	} else {
+		url = cfg.PreviousURL
+		position = "first"
+	}
+
+	if url == nil {
+		return fmt.Errorf("you're on the %s page", position)
+	}
+
+	locationsResp, err := cfg.pokeapiClient.ListLocations(url)
 	if err != nil {
 		return err
 	}
@@ -37,25 +58,26 @@ func commandMap(cfg *Config) error {
 	return nil
 }
 
-func commandMapb(cfg *Config) error {
-	if cfg.PreviousURL == nil {
-		return errors.New("you're on the first page")
+func commandExplore(cfg *Config, args ...string) error {
+
+	if len(args) < 2 {
+		return errors.New("must supply an area name or number")
 	}
 
-	locationResp, err := cfg.pokeapiClient.ListLocations(cfg.PreviousURL)
+	area := args[1]
+	locationResp, err := cfg.pokeapiClient.ListLocationArea(area)
 	if err != nil {
 		return err
 	}
 
-	cfg.NextURL = locationResp.Next
-	cfg.PreviousURL = locationResp.Previous
-
-	for _, loc := range locationResp.Results {
-		fmt.Println(loc.Name)
+	fmt.Printf("Exploring %s...\n", locationResp.Location.Name)
+	len := len(locationResp.PokemonEncounters)
+	if len == 0 {
+		fmt.Println("No Pokemon found here")
 	}
-	return nil
-}
+	for i := 0; i < len; i++ {
+		fmt.Println("-", locationResp.PokemonEncounters[i].Pokemon.Name)
+	}
 
-func commandExplore(cfg *Config) error {
-	fmt.Println("Explore!")
+	return nil
 }

@@ -20,3 +20,7 @@ func NewClient(timeout, cacheInterval time.Duration) Client {
 		},
 	}
 }
+
+func (c *Client) CacheSize() int {
+	return c.cache.CacheSize()
+}

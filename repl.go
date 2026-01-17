@@ -27,7 +27,7 @@ func startRepl(cfg *Config) {
 		command := words[0]
 		ctrl, ok := commandIndex[command]
 		if ok {
-			err := ctrl.callback(cfg)
+			err := ctrl.callback(cfg, words...)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -67,7 +67,17 @@ func init() {
 		"mapb": {
 			name:        "mapb",
 			description: "Display a list of the previous 20 location areas in the Pokemon world",
-			callback:    commandMapb,
+			callback:    commandMap,
+		},
+		"explore": {
+			name:        "explore",
+			description: "Explore a given area",
+			callback:    commandExplore,
+		},
+		"cfg": {
+			name:        "cfg",
+			description: "Show config",
+			callback:    commandCfg,
 		},
 	}
 }
@@ -75,5 +85,5 @@ func init() {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*Config) error
+	callback    func(*Config, ...string) error
 }
